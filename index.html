@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Barrel-Layout</title>
+    <!-- <link rel="stylesheet" href="css/index.css"> -->
+    <style>
+        .img-ct {
+            width: 800px;
+            margin: 0 auto;
+            border: 1px solid pink;
+            border-radius: 5px;
+        }
+
+        .img-ct p {
+            text-align: center;
+        }
+
+        .img-ct p.hide {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="img-ct">
+        <p>图片加载中...</p>
+    </div>
+
+    <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.js"></script>
+    <script>
+        function Barrel($ct) {
+            this.ct = $ct;
+            this.rowList = [];
+            this.init();
+        }
+        Barrel.prototype = {
+            init: function () {
+                // console.log("init");
+                var _this = this;
+                var rowWidth = 0;
+                var rowCtWidth = this.ct.width();
+                console.log("rowCtWidth", rowCtWidth)
+                var imgUrls = this.getImgsUrl(50);
+                imgUrls.forEach(function (ele) {
+                    var img = new Image();
+                    img.src = ele;
+                    img.onload = function (ele) {
+                        var imgInfo = {
+                            target: this,
+                            imgHeight: 200,
+                            imgWidth: 200 * img.width / img.height
+                        };
+                        _this.rowList.push(imgInfo);
+                        var rowWidth = 0;
+                        for (var i = 0; i < _this.rowList.length; i++) {
+                            rowWidth += _this.rowList[i].imgWidth;
+                            console.log("rowWidth", rowWidth)
+                        }
+                        if (rowWidth > rowCtWidth) {
+                            rowWidth -= imgInfo.imgWidth;
+                            _this.rowList.pop();
+                            var newImgHeight = rowCtWidth * 200 / rowWidth;
+                            _this.render(newImgHeight);
+                            $(_this.ct).find("p").addClass("hide");
+                            _this.rowList = [];
+                            _this.rowList.push(imgInfo);
+                            rowWidth = 0;
+                        }
+                    }
+                })
+            },
+            getImgsUrl: function (num) {
+                console.log("getImgUrl")
+                var urls = new Array();
+                for (var i = 0; i < num; i++) {
+                    var height = Math.floor(Math.random() * 200 + 100);
+                    var width = Math.floor(Math.random() * 200 + 100);
+                    urls.push("https://unsplash.it/" + width + "/" + height + "/?random");
+                }
+                return urls;
+            },
+            render: function (newImgHeight) {
+                var rowNode = $('<div class="row-ct"></div>');
+                $.each(this.rowList, function (idx, el) {
+                    var target = $(el.target);
+                    target.height(newImgHeight);
+                    rowNode.prepend(target);
+                })
+                this.ct.append(rowNode);
+            }
+        }
+        var barrel = new Barrel($(".img-ct"));
+    </script>
+</body>
+
+</html>
